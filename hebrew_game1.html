@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Hebrew-English Matching Game 1</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin: 20px; }
+        .container { display: flex; justify-content: center; gap: 50px; }
+        .column { display: flex; flex-direction: column; align-items: center; }
+        .card { background: #f0f0f0; border: 1px solid #ccc; padding: 10px 20px; margin: 5px; cursor: pointer; width: 120px; height: 50px; display: flex; align-items: center; justify-content: center; transition: background 0.3s; }
+        .matched { background: #28a745; color: #fff; }
+        #feedback { margin-top: 20px; font-size: 18px; font-weight: bold; }
+    </style>
+</head>
+<body>
+<h1>Hebrew-English Matching Game 1</h1>
+<p>Match each English word with its Hebrew translation!</p>
+<div class="container">
+    <div id="english" class="column"></div>
+    <div id="hebrew" class="column"></div>
+</div>
+<div id="feedback"></div>
+<script>
+const vocab = [
+    {en: "In", he: "בתוך"}, {en: "On", he: "על"}, {en: "At", he: "ב"},
+    {en: "By", he: "על ידי"}, {en: "From", he: "מ"}, {en: "To", he: "אל"},
+    {en: "The", he: "ה"}, {en: "While", he: "בזמן ש"}, {en: "About", he: "על אודות"},
+    {en: "If", he: "אם"}, {en: "Of", he: "של"}, {en: "Too", he: "גם"},
+    {en: "With", he: "עם"}, {en: "Without", he: "ללא"}, {en: "For", he: "עבור"},
+    {en: "Answer", he: "לענות"}, {en: "Appear", he: "להופיע"}, {en: "Be", he: "להיות"},
+    {en: "Was/Were", he: "היה/היו"}, {en: "Believe", he: "להאמין"}
+];
+
+let englishCards = [];
+let hebrewCards = [];
+
+vocab.forEach((v, index) => {
+    englishCards.push({text: v.en, match: v.he, id: 'en-' + index});
+    hebrewCards.push({text: v.he, match: v.en, id: 'he-' + index});
+});
+
+englishCards = englishCards.sort(() => 0.5 - Math.random());
+hebrewCards = hebrewCards.sort(() => 0.5 - Math.random());
+
+const englishDiv = document.getElementById('english');
+const hebrewDiv = document.getElementById('hebrew');
+const feedback = document.getElementById('feedback');
+let firstCard = null;
+
+function speak(text) {
+    if ('speechSynthesis' in window) {
+        const msg = new SpeechSynthesisUtterance(text);
+        msg.lang = 'en-US';
+        window.speechSynthesis.speak(msg);
+    }
+}
+
+function createCard(card, parentDiv) {
+    const div = document.createElement('div');
+    div.className = 'card';
+    div.textContent = card.text;
+    div.dataset.match = card.match;
+    div.dataset.id = card.id;
+    div.onclick = function() {
+        if (div.classList.contains('matched') || div === firstCard) return;
+
+        // Speak English words only
+        if (parentDiv.id === 'english') {
+            speak(div.textContent);
+        }
+
+        div.style.background = '#add8e6';
+        if (!firstCard) {
+            firstCard = div;
+        } else {
+            if (firstCard && div) {
+                if ((firstCard.dataset.match === div.textContent) || (div.dataset.match === firstCard.textContent)) {
+                    feedback.textContent = `Correct! ${firstCard.textContent} → ${div.textContent}`;
+                    firstCard.classList.add('matched');
+                    div.classList.add('matched');
+                    firstCard.style.background = '#28a745';
+                    div.style.background = '#28a745';
+                    firstCard.style.color = '#fff';
+                    div.style.color = '#fff';
+                } else {
+                    feedback.textContent = `Wrong! ${firstCard.textContent} should match ${firstCard.dataset.match}`;
+                    let tempFirst = firstCard;
+                    let tempSecond = div;
+                    setTimeout(() => {
+                        if (tempFirst && tempSecond) {
+                            tempFirst.style.background = '#f0f0f0';
+                            tempSecond.style.background = '#f0f0f0';
+                        }
+                        feedback.textContent = '';
+                    }, 1000);
+                }
+            }
+            firstCard = null;
+        }
+    };
+    parentDiv.appendChild(div);
+}
+
+englishCards.forEach(card => createCard(card, englishDiv));
+hebrewCards.forEach(card => createCard(card, hebrewDiv));
+</script>
+</body>
+</html>
