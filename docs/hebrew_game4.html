@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Hebrew-English Matching Game 4</title>
+  <style>
+    html, body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+      background: #f0f9ff;
+      height: 100%;
+    }
+    .wrapper {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    .header {
+      padding: 10px;
+      background-color: #0077cc;
+      color: white;
+    }
+    .container {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 20px;
+      padding: 20px;
+    }
+    .column {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .card {
+      background: #ffffff;
+      border: 2px solid #0077cc;
+      padding: 10px 20px;
+      cursor: pointer;
+      width: 110px;
+      height: 45px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      transition: transform 0.3s, background 0.3s;
+    }
+    .card:hover { transform: scale(1.05); }
+    .matched { background: #28a745; color: #fff; }
+    .shake { animation: shake 0.4s; }
+    @keyframes shake {
+      0% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      50% { transform: translateX(5px); }
+      75% { transform: translateX(-5px); }
+      100% { transform: translateX(0); }
+    }
+    #feedback { font-weight: bold; color: #333; margin-top: 10px; }
+    #scoreboard { font-size: 16px; margin-top: 8px; }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+  <div class="header">
+    <h1>Hebrew-English Matching Game 4</h1>
+    <div id="scoreboard">
+      ✅ Matches: <span id="matchCount">0</span> / 20 |
+      ⏱️ Time: <span id="timer">0</span> sec
+    </div>
+    <div id="feedback"></div>
+  </div>
+  <div class="container">
+    <div id="english" class="column"></div>
+    <div id="hebrew" class="column"></div>
+  </div>
+</div>
+<audio id="ding" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_3b6e97998f.mp3?filename=correct-6033.mp3"></audio>
+<script>
+const vocab = [
+  {en: "Life", he: "חיים"}, {en: "Head", he: "ראש"}, {en: "Body", he: "גוף"},
+  {en: "Mouth", he: "פה"}, {en: "Eyes", he: "עיניים"}, {en: "Face", he: "פנים"},
+  {en: "Foot/Feet", he: "רגל/רגליים"}, {en: "Hand", he: "יד"}, {en: "Hair", he: "שיער"},
+  {en: "Ears", he: "אוזניים"}, {en: "Smile (n)", he: "חיוך"}, {en: "Idea", he: "רעיון"},
+  {en: "Memory", he: "זיכרון"}, {en: "Sick", he: "חולה"}, {en: "Lie (down)", he: "לשכב"},
+  {en: "Bone (!)", he: "עצם"}, {en: "Bed", he: "מיטה"}, {en: "Chair", he: "כיסא"},
+  {en: "Door", he: "דלת"}, {en: "Glass", he: "כוס"}
+];
+
+let englishCards = [], hebrewCards = [], matchCount = 0, time = 0, timerInterval = null;
+vocab.forEach(v => {
+  englishCards.push({text: v.en, match: v.he, lang: 'en'});
+  hebrewCards.push({text: v.he, match: v.en, lang: 'he'});
+});
+const englishDiv = document.getElementById('english');
+const hebrewDiv = document.getElementById('hebrew');
+const feedback = document.getElementById('feedback');
+const matchCounter = document.getElementById('matchCount');
+const timerDisplay = document.getElementById('timer');
+const ding = document.getElementById('ding');
+let firstCard = null;
+
+function speak(text) {
+  if ('speechSynthesis' in window) {
+    const msg = new SpeechSynthesisUtterance(text);
+    msg.lang = 'en-US';
+    window.speechSynthesis.speak(msg);
+  }
+}
+
+function startTimer() {
+  timerInterval = setInterval(() => {
+    time++;
+    timerDisplay.textContent = time;
+  }, 1000);
+}
+
+function createCard(cardData, parentDiv) {
+  const div = document.createElement('div');
+  div.className = 'card';
+  div.textContent = cardData.text;
+  div.dataset.match = cardData.match;
+  div.dataset.lang = cardData.lang;
+  div.onclick = function () {
+    if (!timerInterval) startTimer();
+    if (div.classList.contains('matched') || div === firstCard) return;
+    if (cardData.lang === 'en') speak(div.textContent);
+
+    div.style.background = '#add8e6';
+    if (!firstCard) {
+      firstCard = div;
+    } else {
+      if ((firstCard.dataset.match === div.textContent) || (div.dataset.match === firstCard.textContent)) {
+        feedback.textContent = `✅ ${firstCard.textContent} → ${div.textContent}`;
+        ding.play();
+        firstCard.classList.add('matched');
+        div.classList.add('matched');
+        firstCard.style.background = '#28a745';
+        div.style.background = '#28a745';
+        firstCard.style.color = '#fff';
+        div.style.color = '#fff';
+        matchCount++;
+        matchCounter.textContent = matchCount;
+        if (matchCount === vocab.length) {
+          clearInterval(timerInterval);
+          feedback.textContent = `🎉 You matched all words in ${time} seconds!`;
+        }
+      } else {
+        feedback.textContent = `❌ ${firstCard.textContent} should match ${firstCard.dataset.match}`;
+        firstCard.classList.add('shake');
+        div.classList.add('shake');
+        setTimeout(() => {
+          firstCard.style.background = '#ffffff';
+          div.style.background = '#ffffff';
+          firstCard.classList.remove('shake');
+          div.classList.remove('shake');
+          feedback.textContent = '';
+        }, 1000);
+      }
+      firstCard = null;
+    }
+  };
+  parentDiv.appendChild(div);
+}
+englishCards = englishCards.sort(() => 0.5 - Math.random());
+hebrewCards = hebrewCards.sort(() => 0.5 - Math.random());
+englishCards.forEach(card => createCard(card, englishDiv));
+hebrewCards.forEach(card => createCard(card, hebrewDiv));
+</script>
+</body>
+</html>
