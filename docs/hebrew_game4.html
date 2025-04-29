@@ -6,49 +6,24 @@
   <style>
     html, body {
       font-family: Arial, sans-serif;
-      text-align: center;
       margin: 0;
       padding: 0;
+      text-align: center;
       background: #f0f9ff;
       height: 100%;
     }
-    .wrapper {
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
-    .header {
-      padding: 10px;
-      background-color: #0077cc;
-      color: white;
-    }
-    .container {
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 20px;
-      padding: 20px;
-    }
-    .column {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-    }
+    .wrapper { display: flex; flex-direction: column; min-height: 100vh; }
+    .header { background-color: #0077cc; color: white; padding: 10px; }
+    .container { display: flex; justify-content: center; flex-wrap: wrap; gap: 20px; padding: 20px; }
+    .column { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
     .card {
-      background: #ffffff;
-      border: 2px solid #0077cc;
-      padding: 10px 20px;
-      cursor: pointer;
-      width: 110px;
-      height: 45px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 12px;
+      background: #ffffff; border: 2px solid #0077cc; padding: 10px 20px;
+      width: 110px; height: 45px; display: flex; align-items: center;
+      justify-content: center; cursor: pointer; border-radius: 12px;
       transition: transform 0.3s, background 0.3s;
     }
     .card:hover { transform: scale(1.05); }
-    .matched { background: #28a745; color: #fff; }
+    .matched { background: #28a745; color: white; }
     .shake { animation: shake 0.4s; }
     @keyframes shake {
       0% { transform: translateX(0); }
@@ -57,7 +32,7 @@
       75% { transform: translateX(-5px); }
       100% { transform: translateX(0); }
     }
-    #feedback { font-weight: bold; color: #333; margin-top: 10px; }
+    #feedback { margin-top: 10px; font-weight: bold; }
     #scoreboard { font-size: 16px; margin-top: 8px; }
   </style>
 </head>
@@ -76,7 +51,7 @@
     <div id="hebrew" class="column"></div>
   </div>
 </div>
-<audio id="ding" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_3b6e97998f.mp3?filename=correct-6033.mp3"></audio>
+<audio id="ding" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_3b6e97998f.mp3"></audio>
 <script>
 const vocab = [
   {en: "Life", he: "חיים"}, {en: "Head", he: "ראש"}, {en: "Body", he: "גוף"},
@@ -89,10 +64,6 @@ const vocab = [
 ];
 
 let englishCards = [], hebrewCards = [], matchCount = 0, time = 0, timerInterval = null;
-vocab.forEach(v => {
-  englishCards.push({text: v.en, match: v.he, lang: 'en'});
-  hebrewCards.push({text: v.he, match: v.en, lang: 'he'});
-});
 const englishDiv = document.getElementById('english');
 const hebrewDiv = document.getElementById('hebrew');
 const feedback = document.getElementById('feedback');
@@ -163,8 +134,11 @@ function createCard(cardData, parentDiv) {
   };
   parentDiv.appendChild(div);
 }
-englishCards = englishCards.sort(() => 0.5 - Math.random());
-hebrewCards = hebrewCards.sort(() => 0.5 - Math.random());
+
+englishCards = vocab.map(v => ({text: v.en, match: v.he, lang: 'en'}));
+hebrewCards = vocab.map(v => ({text: v.he, match: v.en, lang: 'he'}));
+englishCards.sort(() => 0.5 - Math.random());
+hebrewCards.sort(() => 0.5 - Math.random());
 englishCards.forEach(card => createCard(card, englishDiv));
 hebrewCards.forEach(card => createCard(card, hebrewDiv));
 </script>
