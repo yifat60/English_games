@@ -113,4 +113,48 @@ function createCard(cardData, parentDiv) {
 
     div.style.background = '#add8e6';
     if (!firstCard) {
-      firstCard
+      firstCard = div;
+    } else {
+      if ((firstCard.dataset.match === div.textContent) || (div.dataset.match === firstCard.textContent)) {
+        feedback.textContent = `✅ ${firstCard.textContent} → ${div.textContent}`;
+        ding.play();
+        firstCard.classList.add('matched');
+        div.classList.add('matched');
+        firstCard.style.background = '#28a745';
+        div.style.background = '#28a745';
+        firstCard.style.color = '#fff';
+        div.style.color = '#fff';
+        matchCount++;
+        matchCounter.textContent = matchCount;
+        if (matchCount === vocab.length) {
+          clearInterval(timerInterval);
+          feedback.textContent = `🎉 You matched all words in ${time} seconds!`;
+        }
+      } else {
+        feedback.textContent = `❌ ${firstCard.textContent} should match ${firstCard.dataset.match}`;
+        firstCard.classList.add('shake');
+        div.classList.add('shake');
+        setTimeout(() => {
+          firstCard.style.background = '#ffffff';
+          div.style.background = '#ffffff';
+          firstCard.classList.remove('shake');
+          div.classList.remove('shake');
+          feedback.textContent = '';
+        }, 1000);
+      }
+      firstCard = null;
+    }
+  };
+  parentDiv.appendChild(div);
+}
+
+englishCards = vocab.map(v => ({text: v.en, match: v.he, lang: 'en'}));
+hebrewCards = vocab.map(v => ({text: v.he, match: v.en, lang: 'he'}));
+englishCards.sort(() => 0.5 - Math.random());
+hebrewCards.sort(() => 0.5 - Math.random());
+englishCards.forEach(card => createCard(card, englishDiv));
+hebrewCards.forEach(card => createCard(card, hebrewDiv));
+</script>
+</body>
+</html>
+
